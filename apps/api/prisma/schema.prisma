@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id          String      @id @default(uuid())
+  slug        String      @unique
+  name        String
+  createdAt   DateTime    @default(now())
+  candidates  Candidate[]
+  parseJobs   ParseJob[]
+}
+
+model ParseJob {
+  id            String      @id @default(uuid())
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status        ParseStatus @default(PENDING)
+  originalName  String?
+  storedPath    String?
+  errorMessage  String?     @db.Text
+  rawLlmOutput  String?     @db.LongText
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  candidate     Candidate?
+}
+
+model Candidate {
+  id                 String                  @id @default(uuid())
+  companyId          String
+  company            Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parseJobId         String?                 @unique
+  parseJob           ParseJob?               @relation(fields: [parseJobId], references: [id], onDelete: SetNull)
+  displayName        String?
+  email              String?
+  phone              String?
+  location           String?
+  summary            String?                 @db.Text
+  rawText            String?                 @db.LongText
+  seniority          String?
+  yearsExperience    Int?
+  primaryRole        String?
+  structuredJson     Json?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  experiences        Experience[]
+  educations         Education[]
+  skills             CandidateSkill[]
+  jobProfileMatches  CandidateJobProfile[]
+}
+
+model Experience {
+  id          String    @id @default(uuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  title       String
+  company     String
+  startDate   String?
+  endDate     String?
+  description String?   @db.Text
+  sortOrder   Int       @default(0)
+}
+
+model Education {
+  id           String    @id @default(uuid())
+  candidateId  String
+  candidate    Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  institution  String
+  degree       String?
+  field        String?
+  endDate      String?
+  sortOrder    Int       @default(0)
+}
+
+model Skill {
+  id         String            @id @default(uuid())
+  slug       String            @unique
+  label      String
+  candidates CandidateSkill[]
+}
+
+model CandidateSkill {
+  candidateId String
+  skillId     String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill       Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, skillId])
+}
+
+model JobProfile {
+  id          String                @id @default(uuid())
+  slug        String                @unique
+  label       String
+  candidates  CandidateJobProfile[]
+}
+
+model CandidateJobProfile {
+  candidateId  String
+  jobProfileId String
+  candidate    Candidate  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  jobProfile   JobProfile @relation(fields: [jobProfileId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, jobProfileId])
+}
+
+enum ParseStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}

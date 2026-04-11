@@ -1,0 +1,18 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    # Default server auth is caching_sha2_password (works with Prisma). Avoid mysql_native_password:
+    # it is removed/disabled on newer MySQL (8.4+/9), which causes "Plugin ... is not loaded".
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: slist
+      MYSQL_USER: slist
+      MYSQL_PASSWORD: slist
+    ports:
+      - "3306:3306"
+    volumes:
+      - slist_mysql_data:/var/lib/mysql
+
+volumes:
+  slist_mysql_data:
