@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, getAuthToken } from "@/lib/api";
 import type { ParseJobResponse } from "@/lib/types";
+import { Card, CardContent } from "@/components/ui/card";
 
 type Props = {
   jobId: string | null;
@@ -34,7 +35,10 @@ export function JobStatus({ jobId, onComplete }: Props) {
 
     const tick = async () => {
       try {
-        const res = await fetch(apiUrl(`/resumes/jobs/${jobId}`));
+        const token = getAuthToken();
+        const res = await fetch(apiUrl(`/resumes/jobs/${jobId}`), {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
         if (!res.ok) return;
         const data = (await res.json()) as ParseJobResponse;
         if (cancelled) return;
@@ -64,29 +68,22 @@ export function JobStatus({ jobId, onComplete }: Props) {
   if (!jobId || !job) return null;
 
   return (
-    <div
-      style={{
-        marginTop: "0.75rem",
-        padding: "0.75rem 1rem",
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: 8,
-        fontSize: "0.9rem",
-      }}
-    >
-      <div>
+    <Card className="mt-3 text-sm">
+      <CardContent className="space-y-2 pt-4">
+        <div>
         Parse job <code>{job.id.slice(0, 8)}…</code>:{" "}
-        <strong>{job.status}</strong>
-        {job.originalName ? ` — ${job.originalName}` : null}
-      </div>
+          <strong>{job.status}</strong>
+          {job.originalName ? ` — ${job.originalName}` : null}
+        </div>
       {job.status === "FAILED" && job.errorMessage ? (
-        <div style={{ color: "#f88", marginTop: 6 }}>{job.errorMessage}</div>
+          <div className="text-destructive">{job.errorMessage}</div>
       ) : null}
       {job.status === "COMPLETED" && job.candidate ? (
-        <div style={{ marginTop: 6 }}>
+          <div>
           Candidate saved: {job.candidate.displayName ?? job.candidate.id}
         </div>
       ) : null}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

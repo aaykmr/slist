@@ -31,7 +31,15 @@ Shortlist resumes: Express + MySQL (Prisma) API, Next.js UI, and **OpenAI** or *
    npm run dev:web
    ```
 
-4. Open http://localhost:3000 — upload a PDF, wait for the parse job, then filter the table by skills (AND) and job profile (OR).
+4. Open http://localhost:3000, login (or register), then upload a PDF and filter parsed candidates.
+
+### Auth (email + password)
+
+- Single-company auth: all users are attached to the default company (`demo` by default).
+- JWT bearer auth is required for `/resumes`, `/candidates`, and `/meta`.
+- Seed creates a default account (override via env):
+  - `SEED_AUTH_EMAIL=admin@slist.dev`
+  - `SEED_AUTH_PASSWORD=admin12345`
 
 ### Using Ollama (local, no OpenAI billing)
 
@@ -59,6 +67,9 @@ Shortlist resumes: Express + MySQL (Prisma) API, Next.js UI, and **OpenAI** or *
 
 | Method | Path | Purpose |
 |--------|------|---------|
+| `POST` | `/auth/register` | Create account in default company, returns JWT |
+| `POST` | `/auth/login` | Login with email/password, returns JWT |
+| `GET` | `/auth/me` | Current authenticated user |
 | `POST` | `/resumes` | Multipart field `file` (PDF) → `202` + `{ jobId }`, parses async |
 | `GET` | `/resumes/jobs/:id` | Parse job status + linked candidate |
 | `GET` | `/candidates` | Paginated list; `q`, `skill` (repeat or comma), `jobProfile`, `page`, `pageSize` |

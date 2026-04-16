@@ -1,12 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
-import { resolveDefaultCompanyId } from "../lib/company.js";
 
 export const metaRouter = Router();
 
 metaRouter.get("/skills", async (req, res, next) => {
   try {
-    const companyId = await resolveDefaultCompanyId();
+    const companyId = req.auth!.companyId;
     const used = await prisma.candidateSkill.findMany({
       where: { candidate: { companyId } },
       select: { skillId: true },

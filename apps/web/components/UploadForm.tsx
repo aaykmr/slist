@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, getAuthToken } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   onJobCreated: (jobId: string) => void;
@@ -25,8 +28,10 @@ export function UploadForm({ onJobCreated }: Props) {
     try {
       const body = new FormData();
       body.append("file", file);
+      const token = getAuthToken();
       const res = await fetch(apiUrl("/resumes"), {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body,
       });
       if (!res.ok) {
@@ -44,37 +49,22 @@ export function UploadForm({ onJobCreated }: Props) {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "0.75rem",
-        alignItems: "center",
-        padding: "1rem",
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: 8,
-      }}
-    >
-      <strong style={{ marginRight: "0.5rem" }}>Upload resume (PDF)</strong>
-      <input name="file" type="file" accept=".pdf,application/pdf" />
-      <button
-        type="submit"
-        disabled={busy}
-        style={{
-          padding: "0.4rem 0.9rem",
-          borderRadius: 6,
-          border: "1px solid var(--border)",
-          background: busy ? "#333" : "var(--accent)",
-          color: "#0f1115",
-        }}
-      >
-        {busy ? "Uploading…" : "Upload"}
-      </button>
-      {error ? (
-        <span style={{ color: "#f88", width: "100%" }}>{error}</span>
-      ) : null}
-    </form>
+    <Card>
+      <CardContent className="pt-6">
+        <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-3">
+          <strong className="mr-2">Upload resume (PDF)</strong>
+          <Input
+            name="file"
+            type="file"
+            accept=".pdf,application/pdf"
+            className="max-w-sm file:text-foreground"
+          />
+          <Button type="submit" disabled={busy}>
+            {busy ? "Uploading..." : "Upload"}
+          </Button>
+          {error ? <span className="w-full text-sm text-destructive">{error}</span> : null}
+        </form>
+      </CardContent>
+    </Card>
   );
 }

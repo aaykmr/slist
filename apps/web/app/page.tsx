@@ -5,7 +5,10 @@ import { CandidateTable } from "@/components/CandidateTable";
 import { FilterBar } from "@/components/FilterBar";
 import { JobStatus } from "@/components/JobStatus";
 import { UploadForm } from "@/components/UploadForm";
-import { fetchJson } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { clearAuthToken, fetchJson, setAuthToken } from "@/lib/api";
 import type {
   CandidateListResponse,
   JobProfileOpt,
@@ -27,7 +30,71 @@ function buildQuery(params: {
   return `?${sp.toString()}`;
 }
 
+type AuthResponse = {
+  token: string;
+  user: { id: string; email: string; companyId: string };
+};
+
+function AuthPanel({ onAuthed }: { onAuthed: () => void }) {
+  const [email, setEmail] = useState("admin@slist.dev");
+  const [password, setPassword] = useState("admin12345");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(path: "/auth/login" | "/auth/register") {
+    setBusy(true);
+    setError(null);
+    try {
+      const data = await fetchJson<AuthResponse>(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      setAuthToken(data.token);
+      onAuthed();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Authentication failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mx-auto mt-8 max-w-xl px-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Login</CardTitle>
+          <CardDescription>Use seeded account or register a new one.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3">
+          <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button disabled={busy} onClick={() => void submit("/auth/login")}>
+              {busy ? "Please wait..." : "Login"}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => void submit("/auth/register")}
+            >
+              Register
+            </Button>
+          </div>
+          {error ? <div className="text-sm text-destructive">{error}</div> : null}
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
 export default function HomePage() {
+  const [authed, setAuthed] = useState(false);
   const [skills, setSkills] = useState<SkillOpt[]>([]);
   const [jobProfiles, setJobProfiles] = useState<JobProfileOpt[]>([]);
   const [draft, setDraft] = useState<Filters>({
@@ -45,6 +112,15 @@ export default function HomePage() {
   const [list, setList] = useState<CandidateListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [jobId, setJobId] = useState<string | null>(null);
+
+  const reloadAuth = useCallback(async () => {
+    try {
+      await fetchJson<{ user: { id: string } }>("/auth/me");
+      setAuthed(true);
+    } catch {
+      setAuthed(false);
+    }
+  }, []);
 
   const reloadMeta = useCallback(async () => {
     const [s, jp] = await Promise.all([
@@ -71,31 +147,46 @@ export default function HomePage() {
   }, [page, pageSize, applied]);
 
   useEffect(() => {
-    void reloadMeta().catch(console.error);
-  }, [reloadMeta]);
+    void reloadAuth().catch(console.error);
+  }, [reloadAuth]);
 
   useEffect(() => {
+    if (!authed) return;
+    void reloadMeta().catch(console.error);
     void reloadList().catch(console.error);
-  }, [reloadList]);
+  }, [authed, reloadMeta, reloadList]);
 
   const onJobComplete = useCallback(() => {
     void reloadMeta();
     void reloadList();
   }, [reloadMeta, reloadList]);
 
+  if (!authed) {
+    return <AuthPanel onAuthed={() => setAuthed(true)} />;
+  }
+
   return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "1.5rem" }}>
-      <header style={{ marginBottom: "1.5rem" }}>
-        <h1 style={{ margin: "0 0 0.25rem", fontSize: "1.5rem" }}>slist</h1>
-        <p style={{ margin: 0, color: "var(--muted)" }}>
-          Upload PDF resumes, parse with OpenAI, filter by skills and job profile.
+    <main className="mx-auto max-w-6xl space-y-4 p-6">
+      <header className="mb-6">
+        <h1 className="mb-1 text-2xl font-bold">slist</h1>
+        <p className="text-muted-foreground">
+          Upload PDF resumes, parse with AI, filter by skills and job profile.
         </p>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="mt-3"
+          onClick={() => {
+            clearAuthToken();
+            setAuthed(false);
+          }}
+        >
+          Logout
+        </Button>
       </header>
 
       <UploadForm onJobCreated={setJobId} />
       <JobStatus jobId={jobId} onComplete={onJobComplete} />
-
-      <div style={{ height: "1rem" }} />
 
       <FilterBar
         skills={skills}
@@ -111,8 +202,6 @@ export default function HomePage() {
           setPage(1);
         }}
       />
-
-      <div style={{ height: "1rem" }} />
 
       <CandidateTable
         rows={list?.items ?? []}

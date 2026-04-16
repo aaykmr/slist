@@ -2,6 +2,16 @@
 
 import type { CandidateRow } from "@/lib/types";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type Props = {
   rows: CandidateRow[];
@@ -23,120 +33,92 @@ export function CandidateTable({
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div
-      style={{
-        border: "1px solid var(--border)",
-        borderRadius: 8,
-        overflow: "auto",
-        background: "var(--surface)",
-      }}
-    >
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border)" }}>
-            <th style={{ padding: "0.65rem" }}>Name</th>
-            <th style={{ padding: "0.65rem" }}>Role</th>
-            <th style={{ padding: "0.65rem" }}>Seniority</th>
-            <th style={{ padding: "0.65rem" }}>Profiles</th>
-            <th style={{ padding: "0.65rem" }}>Skills</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Seniority</TableHead>
+              <TableHead>Profiles</TableHead>
+              <TableHead>Skills</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
           {loading ? (
-            <tr>
-              <td colSpan={5} style={{ padding: "1rem", color: "var(--muted)" }}>
+              <TableRow>
+                <TableCell colSpan={5} className="p-4 text-muted-foreground">
                 Loading…
-              </td>
-            </tr>
+                </TableCell>
+              </TableRow>
           ) : rows.length === 0 ? (
-            <tr>
-              <td colSpan={5} style={{ padding: "1rem", color: "var(--muted)" }}>
+              <TableRow>
+                <TableCell colSpan={5} className="p-4 text-muted-foreground">
                 No candidates match these filters.
-              </td>
-            </tr>
+                </TableCell>
+              </TableRow>
           ) : (
             rows.map((r) => (
-              <tr
-                key={r.id}
-                style={{ borderBottom: "1px solid var(--border)" }}
-              >
-                <td style={{ padding: "0.65rem", verticalAlign: "top" }}>
+                <TableRow key={r.id}>
+                  <TableCell className="align-top">
                   <Link href={`/candidates/${r.id}`}>
                     {r.displayName ?? r.email ?? r.id.slice(0, 8)}
                   </Link>
                   {r.email ? (
-                    <div style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+                      <div className="text-xs text-muted-foreground">
                       {r.email}
                     </div>
                   ) : null}
-                </td>
-                <td style={{ padding: "0.65rem", verticalAlign: "top" }}>
+                  </TableCell>
+                  <TableCell className="align-top">
                   {r.primaryRole ?? "—"}
-                </td>
-                <td style={{ padding: "0.65rem", verticalAlign: "top" }}>
+                  </TableCell>
+                  <TableCell className="align-top">
                   {r.seniority ?? "—"}
                   {r.yearsExperience != null ? (
-                    <div style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+                      <div className="text-xs text-muted-foreground">
                       ~{r.yearsExperience} yrs
                     </div>
                   ) : null}
-                </td>
-                <td style={{ padding: "0.65rem", verticalAlign: "top", maxWidth: 200 }}>
+                  </TableCell>
+                  <TableCell className="max-w-52 align-top">
                   {r.jobProfiles.map((p) => p.label).join(", ") || "—"}
-                </td>
-                <td style={{ padding: "0.65rem", verticalAlign: "top", maxWidth: 280 }}>
+                  </TableCell>
+                  <TableCell className="max-w-72 align-top">
                   {r.skills.map((s) => s.label).join(", ") || "—"}
-                </td>
-              </tr>
+                  </TableCell>
+                </TableRow>
             ))
           )}
-        </tbody>
-      </table>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0.6rem 0.75rem",
-          borderTop: "1px solid var(--border)",
-          fontSize: "0.85rem",
-          color: "var(--muted)",
-        }}
-      >
-        <span>
+          </TableBody>
+        </Table>
+        <div className="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">
+          <span>
           {total} total · page {page} of {pages}
-        </span>
-        <span style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => onPageChange(page - 1)}
-            style={{
-              padding: "0.25rem 0.6rem",
-              borderRadius: 6,
-              border: "1px solid var(--border)",
-              background: "transparent",
-              color: "var(--text)",
-            }}
-          >
+          </span>
+          <span className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+            >
             Prev
-          </button>
-          <button
-            type="button"
-            disabled={page >= pages}
-            onClick={() => onPageChange(page + 1)}
-            style={{
-              padding: "0.25rem 0.6rem",
-              borderRadius: 6,
-              border: "1px solid var(--border)",
-              background: "transparent",
-              color: "var(--text)",
-            }}
-          >
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= pages}
+              onClick={() => onPageChange(page + 1)}
+            >
             Next
-          </button>
-        </span>
-      </div>
-    </div>
+            </Button>
+          </span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

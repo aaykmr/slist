@@ -1,12 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
-import { resolveDefaultCompanyId } from "../lib/company.js";
 
 export const candidatesRouter = Router();
 
 candidatesRouter.get("/", async (req, res, next) => {
   try {
-    const companyId = await resolveDefaultCompanyId();
+    const companyId = req.auth!.companyId;
     const page = Math.max(1, Number(req.query.page) || 1);
     const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 20));
     const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
@@ -118,7 +117,7 @@ candidatesRouter.get("/", async (req, res, next) => {
 
 candidatesRouter.get("/:id", async (req, res, next) => {
   try {
-    const companyId = await resolveDefaultCompanyId();
+    const companyId = req.auth!.companyId;
     const c = await prisma.candidate.findFirst({
       where: { id: req.params.id, companyId },
       include: {

@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -28,10 +29,27 @@ async function main() {
     });
   }
 
+  const authEmail = (process.env.SEED_AUTH_EMAIL ?? "admin@slist.dev").toLowerCase();
+  const authPassword = process.env.SEED_AUTH_PASSWORD ?? "admin12345";
+  const passwordHash = await bcrypt.hash(authPassword, 12);
+  const user = await prisma.user.upsert({
+    where: { email: authEmail },
+    create: {
+      email: authEmail,
+      passwordHash,
+      companyId: company.id,
+    },
+    update: {
+      passwordHash,
+      companyId: company.id,
+    },
+  });
+
   console.log(
     "Seed OK. Use DEFAULT_COMPANY_SLUG=demo (default) or DEFAULT_COMPANY_ID=",
     company.id
   );
+  console.log("Auth seed user:", user.email, "password:", authPassword);
 }
 
 main()

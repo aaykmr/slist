@@ -1,6 +1,10 @@
 "use client";
 
 import type { JobProfileOpt, SkillOpt } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 type Props = {
   skills: SkillOpt[];
@@ -42,106 +46,65 @@ export function FilterBar({
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "0.75rem",
-        padding: "1rem",
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: 8,
-      }}
-    >
-      <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-          Search
-        </span>
-        <input
+    <Card>
+      <CardContent className="space-y-4 pt-6">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">Search</span>
+          <Input
           value={q}
           onChange={(e) => onQChange(e.target.value)}
           placeholder="Name, email, role, summary…"
-          style={{
-            padding: "0.45rem 0.6rem",
-            borderRadius: 6,
-            border: "1px solid var(--border)",
-            background: "var(--bg)",
-            color: "var(--text)",
-          }}
         />
-      </label>
+        </label>
 
       <div>
-        <div style={{ color: "var(--muted)", fontSize: "0.85rem", marginBottom: 6 }}>
-          Skills (match all selected)
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div className="mb-2 text-xs text-muted-foreground">
+            Skills (match all selected)
+          </div>
+          <div className="flex flex-wrap gap-2">
           {skills.length === 0 ? (
-            <span style={{ color: "var(--muted)" }}>No skills indexed yet</span>
+              <span className="text-sm text-muted-foreground">No skills indexed yet</span>
           ) : (
             skills.map((s) => (
-              <button
+                <button
                 key={s.slug}
                 type="button"
                 onClick={() => toggleSkill(s.slug)}
-                style={{
-                  padding: "0.25rem 0.55rem",
-                  borderRadius: 999,
-                  border: `1px solid ${selectedSkills.includes(s.slug) ? "var(--accent)" : "var(--border)"}`,
-                  background: selectedSkills.includes(s.slug)
-                    ? "rgba(108, 158, 248, 0.15)"
-                    : "transparent",
-                  color: "var(--text)",
-                }}
+                  className="cursor-pointer"
               >
-                {s.label}
-              </button>
+                  <Badge variant={selectedSkills.includes(s.slug) ? "default" : "outline"}>
+                    {s.label}
+                  </Badge>
+                </button>
             ))
           )}
         </div>
       </div>
 
       <div>
-        <div style={{ color: "var(--muted)", fontSize: "0.85rem", marginBottom: 6 }}>
-          Job profile (any match)
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <div className="mb-2 text-xs text-muted-foreground">Job profile (any match)</div>
+          <div className="flex flex-wrap gap-2">
           {jobProfiles.map((p) => (
-            <button
+              <button
               key={p.slug}
               type="button"
               onClick={() => toggleProfile(p.slug)}
-              style={{
-                padding: "0.25rem 0.55rem",
-                borderRadius: 999,
-                border: `1px solid ${selectedProfiles.includes(p.slug) ? "var(--accent)" : "var(--border)"}`,
-                background: selectedProfiles.includes(p.slug)
-                  ? "rgba(108, 158, 248, 0.15)"
-                  : "transparent",
-                color: "var(--text)",
-              }}
+                className="cursor-pointer"
             >
-              {p.label}
-            </button>
+                <Badge variant={selectedProfiles.includes(p.slug) ? "default" : "outline"}>
+                  {p.label}
+                </Badge>
+              </button>
           ))}
         </div>
       </div>
 
-      <div>
-        <button
-          type="button"
-          onClick={onApply}
-          style={{
-            padding: "0.45rem 1rem",
-            borderRadius: 6,
-            border: "1px solid var(--border)",
-            background: "var(--accent)",
-            color: "#0f1115",
-          }}
-        >
+        <div>
+          <Button type="button" onClick={onApply}>
           Apply filters
-        </button>
-      </div>
-    </div>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

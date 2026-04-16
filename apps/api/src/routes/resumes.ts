@@ -3,7 +3,6 @@ import multer from "multer";
 import path from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
 import { prisma } from "../lib/prisma.js";
-import { resolveDefaultCompanyId } from "../lib/company.js";
 import { processParseJob } from "../services/processParseJob.js";
 
 const upload = multer({
@@ -22,7 +21,7 @@ resumesRouter.post(
         res.status(400).json({ error: "Missing file field `file`" });
         return;
       }
-      const companyId = await resolveDefaultCompanyId();
+      const companyId = req.auth!.companyId;
       const job = await prisma.parseJob.create({
         data: {
           companyId,
@@ -51,8 +50,8 @@ resumesRouter.post(
 
 resumesRouter.get("/jobs/:id", async (req, res, next) => {
   try {
-    const job = await prisma.parseJob.findUnique({
-      where: { id: req.params.id },
+    const job = await prisma.parseJob.findFirst({
+      where: { id: req.params.id, companyId: req.auth!.companyId },
       select: {
         id: true,
         status: true,
