@@ -1,0 +1,26 @@
+.apply-page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.apply-hero {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  padding: 1.25rem;
+}
+
+.apply-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.apply-subtitle {
+  margin: 0.5rem 0 0;
+  color: hsl(var(--muted-foreground));
+}

@@ -1,14 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { CandidateTable } from "@/components/CandidateTable";
 import { FilterBar } from "@/components/FilterBar";
 import { JobStatus } from "@/components/JobStatus";
 import { UploadForm } from "@/components/UploadForm";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { clearAuthToken, fetchJson, setAuthToken } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type {
   CandidateListResponse,
   JobProfileOpt,
@@ -184,6 +186,19 @@ export default function HomePage() {
           Logout
         </Button>
       </header>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Candidate submission URL</CardTitle>
+          <CardDescription>
+            Share this link publicly so candidates can upload resumes directly.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/apply" className={cn(buttonVariants({ variant: "outline" }))}>
+            Open candidate resume form
+          </Link>
+        </CardContent>
+      </Card>
 
       <UploadForm onJobCreated={setJobId} />
       <JobStatus jobId={jobId} onComplete={onJobComplete} />

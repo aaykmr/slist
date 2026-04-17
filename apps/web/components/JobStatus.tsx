@@ -8,9 +8,16 @@ import { Card, CardContent } from "@/components/ui/card";
 type Props = {
   jobId: string | null;
   onComplete: () => void;
+  statusPathPrefix?: string;
+  includeAuth?: boolean;
 };
 
-export function JobStatus({ jobId, onComplete }: Props) {
+export function JobStatus({
+  jobId,
+  onComplete,
+  statusPathPrefix = "/resumes/jobs",
+  includeAuth = true,
+}: Props) {
   const [job, setJob] = useState<ParseJobResponse | null>(null);
   const notifiedRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
@@ -35,8 +42,8 @@ export function JobStatus({ jobId, onComplete }: Props) {
 
     const tick = async () => {
       try {
-        const token = getAuthToken();
-        const res = await fetch(apiUrl(`/resumes/jobs/${jobId}`), {
+        const token = includeAuth ? getAuthToken() : null;
+        const res = await fetch(apiUrl(`${statusPathPrefix}/${jobId}`), {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         if (!res.ok) return;

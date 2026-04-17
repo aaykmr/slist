@@ -8,9 +8,17 @@ import { Input } from "@/components/ui/input";
 
 type Props = {
   onJobCreated: (jobId: string) => void;
+  uploadPath?: string;
+  includeAuth?: boolean;
+  title?: string;
 };
 
-export function UploadForm({ onJobCreated }: Props) {
+export function UploadForm({
+  onJobCreated,
+  uploadPath = "/resumes",
+  includeAuth = true,
+  title = "Upload resume (PDF)",
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,8 +36,8 @@ export function UploadForm({ onJobCreated }: Props) {
     try {
       const body = new FormData();
       body.append("file", file);
-      const token = getAuthToken();
-      const res = await fetch(apiUrl("/resumes"), {
+      const token = includeAuth ? getAuthToken() : null;
+      const res = await fetch(apiUrl(uploadPath), {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body,
@@ -52,7 +60,7 @@ export function UploadForm({ onJobCreated }: Props) {
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-3">
-          <strong className="mr-2">Upload resume (PDF)</strong>
+          <strong className="mr-2">{title}</strong>
           <Input
             name="file"
             type="file"

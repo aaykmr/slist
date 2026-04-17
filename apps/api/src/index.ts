@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth.js";
 import { resumesRouter } from "./routes/resumes.js";
 import { candidatesRouter } from "./routes/candidates.js";
 import { metaRouter } from "./routes/meta.js";
+import { publicRouter } from "./routes/public.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 
 const app = express();
@@ -22,6 +23,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/public", publicRouter);
 app.use(requireAuth);
 app.use("/resumes", resumesRouter);
 app.use("/candidates", candidatesRouter);
